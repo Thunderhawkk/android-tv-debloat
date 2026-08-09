@@ -17,10 +17,13 @@ Built using Python and PySimpleGUI.
 ## Features
 - Connect to Android TV over Wi-Fi (ADB Wireless)
 - Pair & Connect for Android 11+ / Chromecast with Google TV (Wireless Debugging)
-- Debloat TCL and Google bloatware
+- Debloat TCL, Google and other Android TV bloatware
+- Detect exactly what's on your TV: ✅ enabled / 🔴 disabled / ℹ️ not installed
 - Remove Google TV Recommendations
-- Install APKs remotely (FLauncher included)
-- Disable Google Launcher safely (after installing a custom launcher)
+- Install APKs remotely (FLauncher / Projectivy included)
+- **Restore Debloated Apps** — re-enable everything you disabled, in one click
+- Switch launchers safely (FLauncher / Projectivy → Google TV launcher, and back)
+- Live connection status on the main menu
 - Reboot TV remotely
 
 ---
@@ -101,21 +104,36 @@ Or double-click `run_toolkit.py` if Python is associated with `.py` files on you
 Then choose a function:
 - **Safe Debloat** — recommended first run; removes common bloatware safely
 - **Advanced Debloat** — more options with risk ratings (✅ Safe / ⚠️ Caution / 🚫 Critical)
+- **Restore Debloated Apps** — re-enable apps you disabled, so you can undo a debloat
 - **Install APK** — install apps directly to your TV
-- **Disable Google TV Launcher** — only do this after installing a backup launcher like FLauncher
+- **Disable Google TV Launcher** — only do this after installing a backup launcher like Projectivy or FLauncher
+- **Restore Google TV Launcher** — turn the Google launcher back on if you change your mind
+
+Each debloat list shows the live state of every app on **your** TV:
+- ✅ **enabled** — installed and on, checked by default
+- 🔴 **disabled** — already off (your previous debloat worked), unchecked
+- ℹ️ **not on this TV** — the toolkit's list includes apps from many brands; these are simply absent on your device
+
+Use **"Select Only Enabled"** to tick exactly the apps that can still be disabled, or **Deselect All** to start empty.
 
 ---
 
-## Optional: FLauncher (Custom Launcher)
+## Optional: FLauncher / Projectivy (Custom Launcher)
 
-If you plan to disable the Google TV Launcher, install a backup launcher first so you don't get locked out.
+If you plan to replace the Google TV Launcher, install a backup launcher **first** so you don't get locked out.
 
+### Option A — Projectivy Launcher (Play Store)
+1. Install **Projectivy Launcher** from the Play Store on your TV.
+2. Open it once to confirm it runs.
+3. In the Toolkit, click **Disable Google TV Launcher** — it detects Projectivy automatically, sets it as the default home, then turns the Google launcher off.
+
+### Option B — FLauncher (APK)
 1. Download the FLauncher APK from [APKPure](https://apkpure.com/flauncher/me.efesser.flauncher).
 2. Use the **Install APK** button in the Toolkit to push it to your TV.
 3. Open FLauncher from your TV's Apps list to confirm it works.
 4. Then use **Disable Google TV Launcher** in the Toolkit.
 
-✅ FLauncher is open-source, ad-free, and maintained by the community.
+✅ **Safety built in:** The Toolkit refuses to disable the launcher unless an alternative launcher is detected on the TV — pressing Home after the swap opens your new launcher. To go back, use **Restore Google TV Launcher**. FLauncher and Projectivy are both open-source / freemium, ad-free, and community-maintained.
 
 ---
 
@@ -124,10 +142,14 @@ If you plan to disable the Google TV Launcher, install a backup launcher first s
 **"adb not found" error:**
 The toolkit looks for ADB in the `adb/` folder next to the script. Make sure you unzipped the full project (not just the `.py` file).
 
-**32-bit ADB / incompatible with 64-bit Windows:**
-The bundled `adb.exe` may be 32-bit. Replace the files in the `adb/` folder with the latest 64-bit version:
-- Download from [Google's official platform-tools](https://developer.android.com/studio/releases/platform-tools)
+**"This version of %1 is not compatible with the version of Windows" (WinError 216):**
+The bundled `adb.exe` may be a corrupt/stub file or a 32-bit build. Replace the files in the `adb/` folder with a fresh copy from [Google's official platform-tools](https://developer.android.com/studio/releases/platform-tools):
+- Download `platform-tools-latest-windows.zip` from the link above
 - Copy `adb.exe`, `AdbWinApi.dll`, and `AdbWinUsbApi.dll` into the `adb/` folder, replacing the existing files
+- Verify with `adb\adb.exe version` — you should see "Android Debug Bridge" plus a version number
+
+**"Unknown package" errors during debloat:**
+The toolkit's app list covers many TV brands (TCL, Google, generic Android TV). Apps marked **ℹ️ not on this TV** in the debloat screens aren't installed on your device — they're automatically skipped, so nothing goes wrong. Apps that are disabled show **🔴 disabled**.
 
 **"Failed to connect" / "connection refused":**
 - Make sure ADB Debugging is enabled on the TV
@@ -142,7 +164,10 @@ The bundled `adb.exe` may be 32-bit. Replace the files in the `adb/` folder with
 **A:** Yes — Python 3.8+ and the `PySimpleGUI` library (`pip install PySimpleGUI`). This replaced the old `.exe` approach to eliminate antivirus false positives.
 
 **Q: Will this work on all Android TV devices?**  
-**A:** The Toolkit is designed for devices that support ADB Debugging — TCL TVs, Onn 4K boxes, and Nvidia Shield TV. Chromecast with Google TV is supported via the Pair & Connect option. Start with Safe Debloat mode if you are unsure.
+**A:** The Toolkit is designed for devices that support ADB Debugging — TCL TVs, Onn 4K boxes, Nvidia Shield TV, and other generic Android TV / Google TV devices. Chromecast with Google TV is supported via the Pair & Connect option. Start with Safe Debloat mode if you are unsure, and check the status marks (✅ / 🔴 / ℹ️) to see exactly what's on your TV before applying anything.
+
+**Q: I disabled an app by accident. How do I get it back?**  
+**A:** Use **Restore Debloated Apps** — it lists every app you've disabled and re-enables them in one click. If you disabled the launcher, use **Restore Google TV Launcher**.
 
 **Q: Is there a risk of disabling important apps?**  
 **A:** Always start with **Safe Debloat**, which only removes known bloatware. The Advanced mode shows risk ratings for each app (✅ / ⚠️ / 🚫) so you can make informed choices.
@@ -169,6 +194,19 @@ The bundled `adb.exe` may be 32-bit. Replace the files in the `adb/` folder with
 | ADB target | Port hardcoded to 5555 in some places | Consistent `ip:port` target throughout |
 | State management | Global variables | `TVConnection` class |
 | Android 11+ / Chromecast | Not supported | New Pair & Connect flow |
+
+## What Changed After v1.2 (Community Updates)
+
+| Area | Before | After |
+|---|---|---|
+| Bundled ADB | `adb.exe` shipped as a 2-byte stub — WinError 216 on launch | Real 64-bit `adb.exe` from Google platform-tools, verified |
+| Debloat detection | Only asked "is it installed?" — disabled apps looked un-debloated | Three states shown: ✅ enabled / 🔴 disabled / ℹ️ not on this TV |
+| Debloat selection | Select All ticked everything (even missing apps) | **Select Only Enabled** — one click picks exactly the apps that can still be disabled |
+| Brand support | TCL/Google package lists only; missing packages caused "Unknown package" errors | App list is brand-agnostic; not-installed apps are auto-skipped, lists work on any Android TV |
+| Launcher swap | Hardcoded `com.google.android.tvlauncher` disable | Detects the real Google launcher, requires a backup launcher first, and swaps default home safely |
+| Restore disabled apps | Not possible from the GUI | New **Restore Debloated Apps** button re-enables everything in one click |
+| Restore Google launcher | Not possible from the GUI | New **Restore Google TV Launcher** button |
+| Connection feedback | Main menu looked identical before/after connecting | Live green/red status bar shows `🟢 Connected to ip:port` |
 
 ---
 
